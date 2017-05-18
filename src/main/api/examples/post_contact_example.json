@@ -1,0 +1,21 @@
+{
+	"customerId": "123456789",
+    "firstName": "Pablo",
+    "lastName": "M.",
+    "postalAddress": {
+        "street": "buenos",
+        "city": "buanos aires",
+        "postalCode": "55151",
+        "state": "argentina",
+        "country": "argentina"
+    },
+    "phoneNumber": "52155654",
+    "emailAddress": "pablo@pablo.com",
+    "deliveryAddress": {
+        "street": "buenos",
+        "city": "buanos aires",
+        "postalCode": "55151",
+        "state": "argentina",
+        "country": "argentina"
+    }
+}

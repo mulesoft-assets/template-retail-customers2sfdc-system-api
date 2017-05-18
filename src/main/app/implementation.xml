@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+    <flow name="getContactFlow">
+        <sfdc:query-single config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT CustomerId__c, FirstName, LastName, MailingStreet, MailingCity, MailingPostalCode, MailingState, MailingCountry, Phone, Email, OtherStreet, OtherCity, OtherPostalCode, OtherState, OtherCountry FROM Contact WHERE CustomerId__c = '#[message.inboundProperties[&quot;http.uri.params&quot;].customerId]'" doc:name="Get Contact"/>
+        <choice doc:name="Does Contact Exist?">
+            <when expression="#[payload != empty]">
+                <dw:transform-message doc:name="Transform Message">
+                    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	customerId: payload.CustomerId__c,
+	firstName: payload.FirstName,
+	lastName: payload.LastName,
+	postalAddress: {
+		street: payload.MailingStreet,
+		city: payload.MailingCity,
+		postalCode: payload.MailingPostalCode, 
+		state: payload.MailingState,
+		country: payload.MailingCountry
+	},
+	phoneNumber: payload.Phone,
+	emailAddress: payload.Email,
+	deliveryAddress:{
+		street: payload.OtherStreet,
+		city: payload.OtherCity,
+		postalCode: payload.OtherPostalCode,
+		state: payload.OtherState,
+		country: payload.OtherCountry  
+	}
+}]]></dw:set-payload>
+                </dw:transform-message>
+            </when>
+            <otherwise>
+                <set-property propertyName="http.status" value="#[404]" doc:name="Resource Not Found"/>
+                <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" doc:name="Resource not found"/>
+            </otherwise>
+        </choice>
+    </flow>
+    <flow name="postContactFlow">
+        <set-property propertyName="Content-Type" value="application/json" doc:name="Set Content Type"/>
+        <dw:transform-message doc:name="Map input to Salesforce Contact" metadata:id="ea42dff6-d450-4136-b292-8abf3238f2f9">
+            <dw:input-payload mimeType="application/json"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	CustomerId__c: payload.customerId,
+	FirstName: payload.firstName,
+	LastName: payload.lastName,
+	MailingStreet: payload.postalAddress.street,
+	MailingCity: payload.postalAddress.city,
+	MailingPostalCode: payload.postalAddress.postalCode,
+	MailingState: payload.postalAddress.state,
+	MailingCountry: payload.postalAddress.country,
+	Phone: payload.phoneNumber,
+	Email: payload.emailAddress,
+	OtherStreet: payload.deliveryAddress.street,
+	OtherCity: payload.deliveryAddress.city,
+	OtherPostalCode: payload.deliveryAddress.postalCode,
+	OtherState: payload.deliveryAddress.state,
+	OtherCountry: payload.deliveryAddress.country
+}]]></dw:set-payload>
+        </dw:transform-message>
+        <sfdc:create-single config-ref="Salesforce__Basic_Authentication" type="Contact" doc:name="Create New Contact">
+            <sfdc:object ref="#[payload]"/>
+        </sfdc:create-single>
+        <logger message="#[payload]" level="INFO" doc:name="Log Information"/>
+        <set-property propertyName="http.status" value="#[201]" doc:name="Set Status"/>
+        <set-payload value="{ &quot;message&quot;: &quot;Contact was created&quot; }" doc:name="Set Message"/>
+    </flow>
+    <flow name="putContactFlow">
+        <dw:transform-message doc:name="Input transform" metadata:id="0bd0d814-f77d-4f9f-a1dd-03f85ffa4e32">
+            <dw:input-payload mimeType="application/json"/>
+            <dw:set-variable variableName="updatedContact"><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-variable>
+        </dw:transform-message>
+        <sfdc:query-single config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT Id FROM Contact WHERE CustomerId__c='#[message.inboundProperties[&quot;http.uri.params&quot;].customerId]'" doc:name="Query Single Contact"/>
+        <choice doc:name="Does Contact Exist?">
+            <when expression="#[payload != empty]">
+                <choice doc:name="Choice">
+                    <when expression="#[flowVars.updatedContact.customerId ==message.inboundProperties[&quot;http.uri.params&quot;].customerId]">
+                        <dw:transform-message doc:name="sAPI Contact to Salesforce Contact" metadata:id="f64041c7-f234-4221-9b3f-9866ecfabfa3">
+                            <dw:input-payload/>
+                            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	Id:payload.Id,
+	CustomerId__c: flowVars.updatedContact.customerId,
+	FirstName: flowVars.updatedContact.firstName,
+	LastName: flowVars.updatedContact.lastName,
+	MailingStreet: flowVars.updatedContact.postalAddress.street,
+	MailingCity: flowVars.updatedContact.postalAddress.city,
+	MailingPostalCode: flowVars.updatedContact.postalAddress.postalCode,
+	MailingState: flowVars.updatedContact.postalAddress.state,
+	MailingCountry: flowVars.updatedContact.postalAddress.country,
+	Phone: flowVars.updatedContact.phonenumber,
+	Email: flowVars.updatedContact.emailAddress,
+	OtherStreet: flowVars.updatedContact.deliveryAddress.street,
+	OtherCity: flowVars.updatedContact.deliveryAddress.city,
+	OtherPostalCode: flowVars.updatedContact.deliveryAddress.postalCode,
+	OtherState: flowVars.updatedContact.deliveryAddress.state,
+	OtherCountry: flowVars.updatedContact.deliveryAddress.country
+}
+
+]]></dw:set-payload>
+                        </dw:transform-message>
+                        <sfdc:update-single config-ref="Salesforce__Basic_Authentication" type="Contact" doc:name="Update Single Contact">
+                        </sfdc:update-single>
+                        <logger message="Contact was updated" level="INFO" doc:name="Log success"/>
+                    </when>
+                    <otherwise>
+                        <set-property propertyName="http.status" value="#[400]" doc:name="Property"/>
+                        <set-payload value="{ &quot;message&quot;: &quot;Bad Request: Customer Id is not equal to uri parameter&quot; }" doc:name="Set Payload"/>
+                        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+                    </otherwise>
+                </choice>
+            </when>
+            <otherwise>
+                <set-property propertyName="http.status" value="#[404]" doc:name="Resource Not Found"/>
+                <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" doc:name="Resource not found"/>
+                <logger message="#[payload]" level="INFO" doc:name="Log 404"/>
+            </otherwise>
+        </choice>
+    </flow>
+</mule>
