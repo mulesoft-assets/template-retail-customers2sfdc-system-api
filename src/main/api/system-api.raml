@@ -1,7 +1,7 @@
 #%RAML 1.0
 title: Retail Salesforce Customer System API
 version: v1.0
-baseUri: https://localhost:8081/api
+baseUri: https://localhost:8082/api
 
 types: 
   address: 
@@ -19,10 +19,10 @@ types:
       customerId?: string
       firstName?: string
       lastName: string
-      postalAddress?: address
       phone?: string
       email?: string
       deliveryAddress?: address 
+      postalAddress?: address
   
 /customers:
   displayName: Customer contact
@@ -30,9 +30,18 @@ types:
     description: Create customer contact  
     body:
       application/json:
+        type: contact
         example: !include examples/post_contact_example.json
     responses:
       201:
+        body: 
+          application/json: 
+            example: |
+              {
+                "id": "sfdc|1234567890",
+                "customerId": "provider|0123456789"
+              }
+              
   /{customerId}:          
     get:
       description: Return customer information by customerId 
@@ -40,11 +49,13 @@ types:
         200: 
           body:
             application/json:
+              type: contact
               example: !include examples/get_contact_example.json
     put:
       description: Update customer contact by customerId  
       body:
         application/json:
+          type: contact
           example: !include examples/put_contact_example.json 
       responses:
         200:

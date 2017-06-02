@@ -1,21 +1,22 @@
 {
-	"customerId": "123456789",
-    "firstName": "Pablo",
-    "lastName": "M.",
+	"id": "sfdc|1234567890",
+	"customerId": "provider|0123456789",
+    "firstName": "John",
+    "lastName": "Doe",
     "postalAddress": {
-        "street": "buenos",
-        "city": "buanos aires",
-        "postalCode": "55151",
-        "state": "argentina",
-        "country": "argentina"
+        "street": "44 Shirley Ave.",
+        "city": "West Chicago",
+        "postalCode": "60185",
+        "state": "IL",
+        "country": "USA"
     },
-    "phoneNumber": "52155654",
-    "emailAddress": "pablo@pablo.com",
+    "phone": "+1-202-555-0180",
+    "email": "john.doe@example.com",
     "deliveryAddress": {
-        "street": "buenos",
-        "city": "buanos aires",
-        "postalCode": "55151",
-        "state": "argentina",
-        "country": "argentina"
+        "street": "44 Shirley Ave.",
+        "city": "West Chicago",
+        "postalCode": "60185",
+        "state": "IL",
+        "country": "USA"
     }
 }
