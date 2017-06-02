@@ -57,21 +57,40 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 	MailingPostalCode: payload.postalAddress.postalCode,
 	MailingState: payload.postalAddress.state,
 	MailingCountry: payload.postalAddress.country,
-	Phone: payload.phoneNumber,
-	Email: payload.emailAddress,
+	Phone: payload.phone,
+	Email: payload.email,
 	OtherStreet: payload.deliveryAddress.street,
 	OtherCity: payload.deliveryAddress.city,
 	OtherPostalCode: payload.deliveryAddress.postalCode,
 	OtherState: payload.deliveryAddress.state,
 	OtherCountry: payload.deliveryAddress.country
 }]]></dw:set-payload>
+            <dw:set-variable variableName="customerId"><![CDATA[%dw 1.0
+%output application/java
+---
+payload.customerId]]></dw:set-variable>
         </dw:transform-message>
         <sfdc:create-single config-ref="Salesforce__Basic_Authentication" type="Contact" doc:name="Create New Contact">
             <sfdc:object ref="#[payload]"/>
         </sfdc:create-single>
         <logger message="#[payload]" level="INFO" doc:name="Log Information"/>
-        <set-property propertyName="http.status" value="#[201]" doc:name="Set Status"/>
-        <set-payload value="{ &quot;message&quot;: &quot;Contact was created&quot; }" doc:name="Set Message"/>
+        <dw:transform-message doc:name="response and Location header, status 201">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	customerId:  flowVars.customerId,
+	id: payload.id
+}]]></dw:set-payload>
+            <dw:set-property propertyName="Location"><![CDATA[%dw 1.0
+%output application/java
+---
+"/customers/$(flowVars.customerId)"]]></dw:set-property>
+            <dw:set-property propertyName="http.status"><![CDATA[%dw 1.0
+%output application/java
+---
+201]]></dw:set-property>
+        </dw:transform-message>
     </flow>
     <flow name="putContactFlow">
         <dw:transform-message doc:name="Input transform" metadata:id="0bd0d814-f77d-4f9f-a1dd-03f85ffa4e32">
@@ -101,8 +120,8 @@ payload]]></dw:set-variable>
 	MailingPostalCode: flowVars.updatedContact.postalAddress.postalCode,
 	MailingState: flowVars.updatedContact.postalAddress.state,
 	MailingCountry: flowVars.updatedContact.postalAddress.country,
-	Phone: flowVars.updatedContact.phonenumber,
-	Email: flowVars.updatedContact.emailAddress,
+	Phone: flowVars.updatedContact.phone,
+	Email: flowVars.updatedContact.email,
 	OtherStreet: flowVars.updatedContact.deliveryAddress.street,
 	OtherCity: flowVars.updatedContact.deliveryAddress.city,
 	OtherPostalCode: flowVars.updatedContact.deliveryAddress.postalCode,
