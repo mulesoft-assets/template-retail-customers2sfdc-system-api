@@ -6,7 +6,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
     <flow name="getContactFlow">
-        <sfdc:query-single config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT CustomerId__c, FirstName, LastName, MailingStreet, MailingCity, MailingPostalCode, MailingState, MailingCountry, Phone, Email, OtherStreet, OtherCity, OtherPostalCode, OtherState, OtherCountry FROM Contact WHERE CustomerId__c = '#[message.inboundProperties[&quot;http.uri.params&quot;].customerId]'" doc:name="Get Contact"/>
+        <sfdc:query-single config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT CustomerId__c, FirstName, LastName, MailingStreet, MailingCity, MailingPostalCode, MailingState, MailingCountry, Phone, Email, OtherStreet, OtherCity, OtherPostalCode, OtherState, OtherCountry FROM Contact WHERE CustomerId__c = '#[flowVars.customerId]'" doc:name="Get Contact"/>
         <choice doc:name="Does Contact Exist?">
             <when expression="#[payload != empty]">
                 <dw:transform-message doc:name="Transform Message">
@@ -77,7 +77,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
         </dw:transform-message>
         <sfdc:query-single config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT Id FROM Contact WHERE Email='#[payload.Email]' OR CustomerId__c='#[payload.CustomerId__c]'" doc:name="Check customer"/>
 
-        <choice doc:name="Choice">
+        <choice doc:name="Does Contact exist?">
             <when expression="#[payload==null]">
                 <dw:transform-message doc:name="Transform Message">
                     <dw:set-payload><![CDATA[%dw 1.0
@@ -136,11 +136,11 @@ flowVars.customer]]></dw:set-payload>
 ---
 payload]]></dw:set-variable>
         </dw:transform-message>
-        <sfdc:query-single config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT Id FROM Contact WHERE CustomerId__c='#[message.inboundProperties[&quot;http.uri.params&quot;].customerId]'" doc:name="Query Single Contact"/>
+        <sfdc:query-single config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT Id FROM Contact WHERE CustomerId__c='#[flowVars.customerId]'" doc:name="Query Single Contact"/>
         <choice doc:name="Does Contact Exist?">
             <when expression="#[payload != empty]">
-                <choice doc:name="Choice">
-                    <when expression="#[flowVars.updatedContact.customerId ==message.inboundProperties[&quot;http.uri.params&quot;].customerId]">
+                <choice doc:name="Does Contact's id in payload and URI param match?">
+                    <when expression="#[flowVars.updatedContact.customerId == flowVars.customerId]">
                         <dw:transform-message doc:name="sAPI Contact to Salesforce Contact" metadata:id="f64041c7-f234-4221-9b3f-9866ecfabfa3">
                             <dw:input-payload/>
                             <dw:set-payload><![CDATA[%dw 1.0
@@ -167,8 +167,7 @@ payload]]></dw:set-variable>
 
 ]]></dw:set-payload>
                         </dw:transform-message>
-                        <sfdc:update-single config-ref="Salesforce__Basic_Authentication" type="Contact" doc:name="Update Single Contact">
-                        </sfdc:update-single>
+                        <sfdc:update-single config-ref="Salesforce__Basic_Authentication" type="Contact" doc:name="Update Single Contact"/>
                         <logger message="Contact was updated" level="INFO" doc:name="Log success"/>
                     </when>
                     <otherwise>
@@ -177,6 +176,7 @@ payload]]></dw:set-variable>
                         <logger message="#[payload]" level="INFO" doc:name="Logger"/>
                     </otherwise>
                 </choice>
+
             </when>
             <otherwise>
                 <set-property propertyName="http.status" value="#[404]" doc:name="Resource Not Found"/>
