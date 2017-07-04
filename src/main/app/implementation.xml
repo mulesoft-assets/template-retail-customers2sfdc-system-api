@@ -75,7 +75,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 }]]></dw:set-variable>
 
         </dw:transform-message>
-        <sfdc:query-single config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT Id FROM Contact WHERE Email='#[payload.Email]' OR CustomerId__c='#[payload.CustomerId__c]'" doc:name="Check customer"/>
+        <sfdc:query-single config-ref="Salesforce__Basic_Authentication" query="dsql:SELECT Id FROM Contact WHERE CustomerId__c='#[payload.CustomerId__c]'" doc:name="Check customer"/>
 
         <choice doc:name="Does Contact exist?">
             <when expression="#[payload==null]">
