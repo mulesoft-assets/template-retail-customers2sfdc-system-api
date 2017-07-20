@@ -7,11 +7,11 @@ types:
   address: 
     type: object
     properties:
-      street?: string
-      city?: string
-      zipCode?: string
-      state?: string
-      country?: string
+      street?: string?
+      city?: string?
+      zipCode?: string?
+      state?: string?
+      country?: string?
   contact:
     type: object
     properties:
@@ -21,8 +21,8 @@ types:
       lastName: string
       phone?: string
       email?: string
-      deliveryAddress?: address 
-      postalAddress?: address
+      deliveryAddress?: address? 
+      postalAddress?: address?
   
 /customers:
   displayName: Customer contact
