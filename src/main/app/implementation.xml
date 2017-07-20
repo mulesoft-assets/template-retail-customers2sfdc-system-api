@@ -157,7 +157,7 @@ payload]]></dw:set-variable>
 	MailingState: flowVars.updatedContact.postalAddress.state,
 	MailingCountry: flowVars.updatedContact.postalAddress.country,
 	Phone: flowVars.updatedContact.phone,
-	Email: flowVars.updatedContact.email,
+	(Email: flowVars.updatedContact.email) when flowVars.updatedContact.email?,
 	OtherStreet: flowVars.updatedContact.deliveryAddress.street,
 	OtherCity: flowVars.updatedContact.deliveryAddress.city,
 	OtherPostalCode: flowVars.updatedContact.deliveryAddress.postalCode,
