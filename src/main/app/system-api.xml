@@ -13,9 +13,6 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
 http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
-
-   
-    <apikit:config name="system-api-config" raml="system-api.raml" consoleEnabled="true"   keepRamlBaseUri="false" doc:name="Router"/>
         
     <flow name="api-main">
         <http:listener config-ref="http-Listener-Config" path="/api/*" doc:name="HTTP"/>
