@@ -18,16 +18,16 @@ Please review the terms of the license before downloading and using this templat
 
 # Use Case <a name="usecase"/>
 
-This API allows to create, update the customer contacts to Salesforce and obtain the customer contacts from Salesforce based on customerId.
+This API allows to create, update the customer contacts in Salesforce and obtain the customer contact from Salesforce by customerId.
 
 ### POST/customers 
 This endpoint will trigger flow postContactFlow which creates the customer contact to the Salesforce.
 
 ### GET/customers/{customerId}
-This endpoint will trigger flow getContactFlow which obtains a customer contact to the Salesforce based on customerId. 
+This endpoint will trigger flow getContactFlow which obtains a customer contact to the Salesforce by customerId. 
 
 ### PUT/customers/{customerId} 
-This endpoint will trigger flow putContactFlow which updates the customer contact to the Salesforce based on customerId.         
+This endpoint will trigger flow putContactFlow which updates the customer contact to the Salesforce by customerId.         
 
 Look at the included self-descriptive RAML definition and the corresponding flows to learn more about the flows.
 
