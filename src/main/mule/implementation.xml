@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+    xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+    http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+    <flow name="getContactFlow" doc:id="fc2b52d7-5e79-41fb-afff-206941efe83c">
+        <salesforce:query-single doc:name="Get Contact" doc:id="a1cd3c93-d445-448d-94ac-59360714e8ba" config-ref="Salesforce_Config">
+            <salesforce:salesforce-query>SELECT CustomerId__c, FirstName, LastName, MailingStreet, MailingCity, MailingPostalCode,
+                MailingState, MailingCountry, Phone, Email, OtherStreet, OtherCity, OtherPostalCode, OtherState, OtherCountry FROM Contact
+                WHERE CustomerId__c = ':customerId'</salesforce:salesforce-query>
+            <salesforce:parameters><![CDATA[#[output applicaton/java
+---
+{
+	"customerId" : attributes.uriParams.customerId
+}]]]></salesforce:parameters>
+        </salesforce:query-single>
+        <choice doc:name="Does Contact Exist?" doc:id="d94098c6-c696-4424-a70e-ce38c5452020">
+            <when expression="#[sizeOf(payload) != 0]">
+                <ee:transform doc:name="Transform Message" doc:id="cf2e0a42-3049-4172-8a21-f91bde2c4529">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    customerId: payload.CustomerId__c,
+    firstName: payload.FirstName,
+    lastName: payload.LastName,
+    postalAddress: {
+        street: payload.MailingStreet,
+        city: payload.MailingCity,
+        postalCode: payload.MailingPostalCode,
+        state: payload.MailingState,
+        country: payload.MailingCountry
+    },
+    phoneNumber: payload.Phone,
+    emailAddress: payload.Email,
+    deliveryAddress: {
+        street: payload.OtherStreet,
+        city: payload.OtherCity,
+        postalCode: payload.OtherPostalCode,
+        state: payload.OtherState,
+        country: payload.OtherCountry
+    }
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <set-variable value="404" doc:name="Resource Not Found" doc:id="04d2f7ab-6dcd-4e70-8fda-f7cbc44e7fd8"
+                    variableName="httpStatus" />
+                <set-payload value='{ "message": "Resource not found" }' doc:name="Set Payload" doc:id="18483e87-fb01-4545-89c2-d09d1d366a0f"
+                    mimeType="application/json" />
+            </otherwise>
+        </choice>
+    </flow>
+    <flow name="postContactFlow" doc:id="4f64a6ec-b3b0-4e92-8ecc-5d04d7283db9">
+        <ee:transform doc:name="Map input to Salesforce Contact" doc:id="03dad6e5-d556-4119-b0e1-623017ddd9e2">
+            <ee:message>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="customer"><![CDATA[%dw 2.0
+output application/java
+---
+{
+	CustomerId__c: payload.customerId,
+	FirstName: payload.firstName,
+	LastName: payload.lastName,
+	MailingStreet: payload.postalAddress.street,
+	MailingCity: payload.postalAddress.city,
+	MailingPostalCode: payload.postalAddress.postalCode,
+	MailingState: payload.postalAddress.state,
+	MailingCountry: payload.postalAddress.country,
+	Phone: payload.phone,
+	Email: payload.email,
+	OtherStreet: payload.deliveryAddress.street,
+	OtherCity: payload.deliveryAddress.city,
+	OtherPostalCode: payload.deliveryAddress.postalCode,
+	OtherState: payload.deliveryAddress.state,
+	OtherCountry: payload.deliveryAddress.country
+}]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <salesforce:query-single doc:name="Check Contact" doc:id="e4fea40a-71ee-4cc6-9f10-93349bc1728b" config-ref="Salesforce_Config">
+            <salesforce:salesforce-query>SELECT Id FROM Contact WHERE CustomerId__c=':customerId'</salesforce:salesforce-query>
+            <salesforce:parameters><![CDATA[#[output applicaton/java
+---
+{
+	"customerId" : vars.customer.CustomerId__c
+}]]]></salesforce:parameters>
+        </salesforce:query-single>
+        <choice doc:name="Does Contact exist?" doc:id="e317d7fb-1f14-491c-8267-f06b7f5c2f09">
+            <when expression="#[sizeOf(payload) == 0]">
+				<salesforce:create-single doc:name="Create new Contact" doc:id="655949ce-17e1-4438-b37d-3182d69c5d89" config-ref="Salesforce_Config" type="Contact">
+					<salesforce:record ><![CDATA[#[vars.customer]]]></salesforce:record>
+				</salesforce:create-single>
+				<logger level="INFO" doc:name="Log Information" doc:id="3a38f08c-7c93-4b05-9027-792b1ed320e7" message="New Contact is created with id: #[payload.id]" />
+				<ee:transform doc:name="Set payload" doc:id="e82a7ca9-50c6-455a-893c-1366279efec2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"id": payload.id,
+	"customerId": vars.customer.CustomerId__c
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+            </when>
+            <otherwise>
+                <set-variable value="422" doc:name="Contact with this id already exists" doc:id="04d2f7ab-6dcd-4e70-8fda-f7cbc44e7fd8"
+                    variableName="httpStatus" />
+                <set-payload value='{ "error": "Contact with this id already exists" }' doc:name="Set Payload"
+                    doc:id="18483e87-fb01-4545-89c2-d09d1d366a0f" mimeType="application/json" />
+            </otherwise>
+        </choice>
+    </flow>
+    <flow name="putContactFlow" doc:id="5ddad4c8-b566-48ad-b582-164f494db5b2">
+        <ee:transform doc:name="Input transform" doc:id="d4a694f9-b53c-4a58-a246-26eed9dd2a78">
+            <ee:message>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="updatedContact"><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-variable>
+                <ee:set-variable variableName="customerId"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.uriParams.customerId]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <salesforce:query-single doc:name="Query Single Contact" doc:id="4999f6a0-6a38-429d-83f9-a494e6354f5a"
+            config-ref="Salesforce_Config">
+            <salesforce:salesforce-query>SELECT Id FROM Contact WHERE CustomerId__c=':customerId'</salesforce:salesforce-query>
+            <salesforce:parameters><![CDATA[#[output applicaton/java
+---
+{
+	"customerId" : vars.customerId
+}]]]></salesforce:parameters>
+        </salesforce:query-single>
+        <choice doc:name="Does Contact Exist?" doc:id="6c8ee81f-c70b-40fa-8d93-46fb5dc07403">
+            <when expression="#[sizeOf(payload) != 0]">
+                <choice doc:name="Does Contact's id in payload and URI param match?" doc:id="9c9bc6ef-4a35-46a5-8019-1cbdf5b15a63">
+                    <when expression="#[vars.updatedContact.customerId == vars.customerId]">
+                        <ee:transform doc:name="sAPI Contact to Salesforce Contact" doc:id="974178c5-541c-4a88-99fb-0376628d75e1">
+                            <ee:message>
+                                <ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+{
+	Id: payload.Id,
+	CustomerId__c: vars.updatedContact.customerId,
+	FirstName: vars.updatedContact.firstName,
+	LastName: vars.updatedContact.lastName,
+	MailingStreet: vars.updatedContact.postalAddress.street,
+	MailingCity: vars.updatedContact.postalAddress.city,
+	MailingPostalCode: vars.updatedContact.postalAddress.postalCode,
+	MailingState: vars.updatedContact.postalAddress.state,
+	MailingCountry: vars.updatedContact.postalAddress.country,
+	Phone: vars.updatedContact.phone,
+	(Email: vars.updatedContact.email) if vars.updatedContact.email?,
+	OtherStreet: vars.updatedContact.deliveryAddress.street,
+	OtherCity: vars.updatedContact.deliveryAddress.city,
+	OtherPostalCode: vars.updatedContact.deliveryAddress.postalCode,
+	OtherState: vars.updatedContact.deliveryAddress.state,
+	OtherCountry: vars.updatedContact.deliveryAddress.country
+}
+]]></ee:set-payload>
+                            </ee:message>
+                        </ee:transform>
+                        <salesforce:update-single type="Contact" doc:name="Update Single Contact" doc:id="d2262dea-da78-4d21-b967-39ae8c8e57c1"
+                            config-ref="Salesforce_Config" />
+                        <logger level="INFO" doc:name="Log Information" doc:id="2285c0fa-2ec2-448f-9e79-8c01982c9814" message="Contact #[payload.id] is updated" />
+						<set-payload value='{ "status": "OK" }' doc:name="Set Payload" doc:id="18483e87-fb01-4545-89c2-d09d1d366a0f" mimeType="application/json" />
+                    </when>
+                    <otherwise>
+                        <set-variable value="400" doc:name="Bad Request " doc:id="04d2f7ab-6dcd-4e70-8fda-f7cbc44e7fd8"
+                            variableName="httpStatus" />
+                        <set-payload value='{ "message": "Bad Request: Customer Id is not equal to uri parameter" }' doc:name="Set Payload"
+                            doc:id="18483e87-fb01-4545-89c2-d09d1d366a0f" mimeType="application/json" />
+                    </otherwise>
+                </choice>
+            </when>
+            <otherwise>
+                <set-variable value="404" doc:name="Resource Not Found" doc:id="04d2f7ab-6dcd-4e70-8fda-f7cbc44e7fd8"
+                    variableName="httpStatus" />
+                <set-payload value='{ "message": "Resource not found" }' doc:name="Set Payload" doc:id="18483e87-fb01-4545-89c2-d09d1d366a0f"
+                    mimeType="application/json" />
+            </otherwise>
+        </choice>
+    </flow>
+</mule>
