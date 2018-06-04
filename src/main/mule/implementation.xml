@@ -83,7 +83,7 @@ output application/java
 }]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
-        <salesforce:query-single doc:name="Check customer" doc:id="e4fea40a-71ee-4cc6-9f10-93349bc1728b" config-ref="Salesforce_Config">
+        <salesforce:query-single doc:name="Check Contact" doc:id="e4fea40a-71ee-4cc6-9f10-93349bc1728b" config-ref="Salesforce_Config">
             <salesforce:salesforce-query>SELECT Id FROM Contact WHERE CustomerId__c=':customerId'</salesforce:salesforce-query>
             <salesforce:parameters><![CDATA[#[output applicaton/java
 ---
@@ -93,18 +93,17 @@ output application/java
         </salesforce:query-single>
         <choice doc:name="Does Contact exist?" doc:id="e317d7fb-1f14-491c-8267-f06b7f5c2f09">
             <when expression="#[sizeOf(payload) == 0]">
-                <salesforce:create type="Contact" doc:name="Create New Contact" doc:id="e15b3693-1fa5-4768-8956-06e8c6e3adf8"
-                    config-ref="Salesforce_Config">
-                    <salesforce:records><![CDATA[#[[vars.customer]]]]></salesforce:records>
-                </salesforce:create>
-                <logger level="INFO" doc:name="Log Information" doc:id="3a38f08c-7c93-4b05-9027-792b1ed320e7" message="New Contact is created with id: #[payload[0].id]" />
+				<salesforce:create-single doc:name="Create new Contact" doc:id="655949ce-17e1-4438-b37d-3182d69c5d89" config-ref="Salesforce_Config" type="Contact">
+					<salesforce:record ><![CDATA[#[vars.customer]]]></salesforce:record>
+				</salesforce:create-single>
+				<logger level="INFO" doc:name="Log Information" doc:id="3a38f08c-7c93-4b05-9027-792b1ed320e7" message="New Contact is created with id: #[payload.id]" />
 				<ee:transform doc:name="Set payload" doc:id="e82a7ca9-50c6-455a-893c-1366279efec2" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
 {
-	"id": payload[0].id,
+	"id": payload.id,
 	"customerId": vars.customer.CustomerId__c
 }]]></ee:set-payload>
 					</ee:message>
