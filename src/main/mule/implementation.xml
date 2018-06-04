@@ -95,14 +95,20 @@ output application/java
             <when expression="#[sizeOf(payload) == 0]">
                 <salesforce:create type="Contact" doc:name="Create New Contact" doc:id="e15b3693-1fa5-4768-8956-06e8c6e3adf8"
                     config-ref="Salesforce_Config">
-                    <salesforce:records><![CDATA[#[vars.customer]]]></salesforce:records>
+                    <salesforce:records><![CDATA[#[[vars.customer]]]]></salesforce:records>
                 </salesforce:create>
-                <logger level="INFO" doc:name="Log Information" doc:id="3a38f08c-7c93-4b05-9027-792b1ed320e7" message="New Contact is created: #[payload]" />
-                <set-payload value='{
-	id: payload.id,
-	customerId:  vars.customer.CustomerId__c
-}' doc:name="Set Payload"
-                    doc:id="18483e87-fb01-4545-89c2-d09d1d366a0f" mimeType="application/json" />
+                <logger level="INFO" doc:name="Log Information" doc:id="3a38f08c-7c93-4b05-9027-792b1ed320e7" message="New Contact is created with id: #[payload[0].id]" />
+				<ee:transform doc:name="Set payload" doc:id="e82a7ca9-50c6-455a-893c-1366279efec2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"id": payload[0].id,
+	"customerId": vars.customer.CustomerId__c
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
             </when>
             <otherwise>
                 <set-variable value="422" doc:name="Contact with this id already exists" doc:id="04d2f7ab-6dcd-4e70-8fda-f7cbc44e7fd8"
@@ -168,7 +174,8 @@ output application/java
                         </ee:transform>
                         <salesforce:update-single type="Contact" doc:name="Update Single Contact" doc:id="d2262dea-da78-4d21-b967-39ae8c8e57c1"
                             config-ref="Salesforce_Config" />
-                        <logger level="INFO" doc:name="Log Information" doc:id="2285c0fa-2ec2-448f-9e79-8c01982c9814" message="Contact is updated: #[payload]" />
+                        <logger level="INFO" doc:name="Log Information" doc:id="2285c0fa-2ec2-448f-9e79-8c01982c9814" message="Contact #[payload.id] is updated" />
+						<set-payload value='{ "status": "OK" }' doc:name="Set Payload" doc:id="18483e87-fb01-4545-89c2-d09d1d366a0f" mimeType="application/json" />
                     </when>
                     <otherwise>
                         <set-variable value="400" doc:name="Bad Request " doc:id="04d2f7ab-6dcd-4e70-8fda-f7cbc44e7fd8"
