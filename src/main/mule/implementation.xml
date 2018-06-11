@@ -28,22 +28,26 @@ output application/json
     customerId: payload.CustomerId__c,
     firstName: payload.FirstName,
     lastName: payload.LastName,
-    postalAddress: {
-        street: payload.MailingStreet,
+    phoneNumber: payload.Phone,
+    emailAddress: payload.Email,
+    deliveryAddresses: [
+    {
+	    "type": "SHIPPING",
+	    address: payload.OtherStreet,
+	    city: payload.OtherCity,
+        postalCode: payload.OtherPostalCode,
+        state: payload.OtherState,
+        country: payload.OtherCountry
+    },
+    {
+    	"type": "BILLING",
+	    address: payload.MailingStreet,
         city: payload.MailingCity,
         postalCode: payload.MailingPostalCode,
         state: payload.MailingState,
         country: payload.MailingCountry
-    },
-    phoneNumber: payload.Phone,
-    emailAddress: payload.Email,
-    deliveryAddress: {
-        street: payload.OtherStreet,
-        city: payload.OtherCity,
-        postalCode: payload.OtherPostalCode,
-        state: payload.OtherState,
-        country: payload.OtherCountry
     }
+  ]
 }]]></ee:set-payload>
                     </ee:message>
                 </ee:transform>
@@ -57,7 +61,21 @@ output application/json
         </choice>
     </flow>
     <flow name="postContactFlow" doc:id="4f64a6ec-b3b0-4e92-8ecc-5d04d7283db9">
-        <ee:transform doc:name="Map input to Salesforce Contact" doc:id="03dad6e5-d556-4119-b0e1-623017ddd9e2">
+		<ee:transform doc:name="Set addresses" doc:id="33265dc5-239c-4de2-abf8-e869781f94be" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="postalAddress" ><![CDATA[%dw 2.0
+output application/java
+---
+(payload.deliveryAddresses filter ($["type"] == 'BILLING'))[0]]]></ee:set-variable>
+				<ee:set-variable variableName="deliveryAddress" ><![CDATA[%dw 2.0
+output application/java
+---
+(payload.deliveryAddresses filter ($["type"] == 'SHIPPING'))[0]]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Map input to Salesforce Contact" doc:id="03dad6e5-d556-4119-b0e1-623017ddd9e2">
             <ee:message>
             </ee:message>
             <ee:variables>
@@ -68,18 +86,18 @@ output application/java
 	CustomerId__c: payload.customerId,
 	FirstName: payload.firstName,
 	LastName: payload.lastName,
-	MailingStreet: payload.postalAddress.street,
-	MailingCity: payload.postalAddress.city,
-	MailingPostalCode: payload.postalAddress.postalCode,
-	MailingState: payload.postalAddress.state,
-	MailingCountry: payload.postalAddress.country,
+	(MailingStreet: vars.postalAddress.address) if vars.postalAddress?,
+	(MailingCity: vars.postalAddress.city) if vars.postalAddress?,
+	(MailingPostalCode: vars.postalAddress.postalCode) if vars.postalAddress?,
+	(MailingState: vars.postalAddress.state) if vars.postalAddress?,
+	(MailingCountry: vars.postalAddress.country) if vars.postalAddress?,
 	Phone: payload.phone,
 	Email: payload.email,
-	OtherStreet: payload.deliveryAddress.street,
-	OtherCity: payload.deliveryAddress.city,
-	OtherPostalCode: payload.deliveryAddress.postalCode,
-	OtherState: payload.deliveryAddress.state,
-	OtherCountry: payload.deliveryAddress.country
+	(OtherStreet: vars.deliveryAddress.address) if vars.deliveryAddress?,
+	(OtherCity: vars.deliveryAddress.city) if vars.deliveryAddress?,
+	(OtherPostalCode: vars.deliveryAddress.postalCode) if vars.deliveryAddress?,
+	(OtherState: vars.deliveryAddress.state) if vars.deliveryAddress?,
+	(OtherCountry: vars.deliveryAddress.country) if vars.deliveryAddress?
 }]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
@@ -145,7 +163,21 @@ attributes.uriParams.customerId]]></ee:set-variable>
             <when expression="#[sizeOf(payload) != 0]">
                 <choice doc:name="Does Contact's id in payload and URI param match?" doc:id="9c9bc6ef-4a35-46a5-8019-1cbdf5b15a63">
                     <when expression="#[vars.updatedContact.customerId == vars.customerId]">
-                        <ee:transform doc:name="sAPI Contact to Salesforce Contact" doc:id="974178c5-541c-4a88-99fb-0376628d75e1">
+                        <ee:transform doc:name="Set addresses" doc:id="a9631e3f-c23c-4ca3-8de0-45f1e24d2ea3" >
+							<ee:message >
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="postalAddress" ><![CDATA[%dw 2.0
+output application/java
+---
+(vars.updatedContact.deliveryAddresses filter ($["type"] == 'BILLING'))[0]]]></ee:set-variable>
+								<ee:set-variable variableName="deliveryAddress" ><![CDATA[%dw 2.0
+output application/java
+---
+(vars.updatedContact.deliveryAddresses filter ($["type"] == 'SHIPPING'))[0]]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+						<ee:transform doc:name="sAPI Contact to Salesforce Contact" doc:id="974178c5-541c-4a88-99fb-0376628d75e1">
                             <ee:message>
                                 <ee:set-payload><![CDATA[%dw 2.0
 output application/java
@@ -155,18 +187,18 @@ output application/java
 	CustomerId__c: vars.updatedContact.customerId,
 	FirstName: vars.updatedContact.firstName,
 	LastName: vars.updatedContact.lastName,
-	MailingStreet: vars.updatedContact.postalAddress.street,
-	MailingCity: vars.updatedContact.postalAddress.city,
-	MailingPostalCode: vars.updatedContact.postalAddress.postalCode,
-	MailingState: vars.updatedContact.postalAddress.state,
-	MailingCountry: vars.updatedContact.postalAddress.country,
 	Phone: vars.updatedContact.phone,
 	(Email: vars.updatedContact.email) if vars.updatedContact.email?,
-	OtherStreet: vars.updatedContact.deliveryAddress.street,
-	OtherCity: vars.updatedContact.deliveryAddress.city,
-	OtherPostalCode: vars.updatedContact.deliveryAddress.postalCode,
-	OtherState: vars.updatedContact.deliveryAddress.state,
-	OtherCountry: vars.updatedContact.deliveryAddress.country
+	(MailingStreet: vars.postalAddress.address) if vars.postalAddress?,
+	(MailingCity: vars.postalAddress.city) if vars.postalAddress?,
+	(MailingPostalCode: vars.postalAddress.postalCode) if vars.postalAddress?,
+	(MailingState: vars.postalAddress.state) if vars.postalAddress?,
+	(MailingCountry: vars.postalAddress.country) if vars.postalAddress?,
+	(OtherStreet: vars.deliveryAddress.address) if vars.deliveryAddress?,
+	(OtherCity: vars.deliveryAddress.city) if vars.deliveryAddress?,
+	(OtherPostalCode: vars.deliveryAddress.postalCode) if vars.deliveryAddress?,
+	(OtherState: vars.deliveryAddress.state) if vars.deliveryAddress?,
+	(OtherCountry: vars.deliveryAddress.country) if vars.deliveryAddress?
 }
 ]]></ee:set-payload>
                             </ee:message>
