@@ -16,13 +16,12 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
     <tls:context name="TLS_Context" doc:name="TLS Context" doc:id="8ac59cc6-3917-498a-b6c8-e020308d3c04">
         <tls:key-store type="jks" path="${keystore.location}" alias="${key.alias}" keyPassword="${key.password}" password="${keystore.password}" />
     </tls:context>
-
-    <http:listener-config name="system_customers_api-httpListenerConfig" doc:name="HTTP Listener config">
+    <http:listener-config name="retail-customers2sfdc-system-api-httpListenerConfig" doc:name="HTTP Listener config">
         <http:listener-connection host="0.0.0.0" port="${https.port}" tlsContext="TLS_Context" protocol="HTTPS" />
     </http:listener-config>
 
-    <apikit:config name="system_customers_api-config" raml="retail-customers2sfdc-system-api.raml" outboundHeadersMapName="outboundHeaders"
-        httpStatusVarName="httpStatus" />
+    <apikit:config name="retail-customers2sfdc-system-api-config" raml="retail-customers2sfdc-system-api.raml"
+        outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
 
     <salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="4a32499f-1d39-4cf1-9ea5-7b1c4721fad6">
         <salesforce:basic-connection username="${sfdc.username}" password="${sfdc.password}" securityToken="${sfdc.securityToken}" />

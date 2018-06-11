@@ -28,22 +28,26 @@ output application/json
     customerId: payload.CustomerId__c,
     firstName: payload.FirstName,
     lastName: payload.LastName,
-    postalAddress: {
-        street: payload.MailingStreet,
+    phoneNumber: payload.Phone,
+    emailAddress: payload.Email,
+    deliveryAddresses: [
+    {
+	    "type": "SHIPPING",
+	    address: payload.OtherStreet,
+	    city: payload.OtherCity,
+        postalCode: payload.OtherPostalCode,
+        state: payload.OtherState,
+        country: payload.OtherCountry
+    },
+    {
+    	"type": "BILLING",
+	    address: payload.MailingStreet,
         city: payload.MailingCity,
         postalCode: payload.MailingPostalCode,
         state: payload.MailingState,
         country: payload.MailingCountry
-    },
-    phoneNumber: payload.Phone,
-    emailAddress: payload.Email,
-    deliveryAddress: {
-        street: payload.OtherStreet,
-        city: payload.OtherCity,
-        postalCode: payload.OtherPostalCode,
-        state: payload.OtherState,
-        country: payload.OtherCountry
     }
+  ]
 }]]></ee:set-payload>
                     </ee:message>
                 </ee:transform>
@@ -57,7 +61,7 @@ output application/json
         </choice>
     </flow>
     <flow name="postContactFlow" doc:id="4f64a6ec-b3b0-4e92-8ecc-5d04d7283db9">
-        <ee:transform doc:name="Map input to Salesforce Contact" doc:id="03dad6e5-d556-4119-b0e1-623017ddd9e2">
+		<ee:transform doc:name="Map input to Salesforce Contact" doc:id="03dad6e5-d556-4119-b0e1-623017ddd9e2">
             <ee:message>
             </ee:message>
             <ee:variables>
@@ -68,18 +72,18 @@ output application/java
 	CustomerId__c: payload.customerId,
 	FirstName: payload.firstName,
 	LastName: payload.lastName,
-	MailingStreet: payload.postalAddress.street,
-	MailingCity: payload.postalAddress.city,
-	MailingPostalCode: payload.postalAddress.postalCode,
-	MailingState: payload.postalAddress.state,
-	MailingCountry: payload.postalAddress.country,
+	MailingStreet: payload.deliveryAddresses[1].street,
+	MailingCity: payload.deliveryAddresses[1].city,
+	MailingPostalCode: payload.deliveryAddresses[1].postalCode,
+	MailingState: payload.deliveryAddresses[1].state,
+	MailingCountry: payload.deliveryAddresses[1].country,
 	Phone: payload.phone,
 	Email: payload.email,
-	OtherStreet: payload.deliveryAddress.street,
-	OtherCity: payload.deliveryAddress.city,
-	OtherPostalCode: payload.deliveryAddress.postalCode,
-	OtherState: payload.deliveryAddress.state,
-	OtherCountry: payload.deliveryAddress.country
+	OtherStreet: payload.deliveryAddresses[0].street,
+	OtherCity: payload.deliveryAddresses[0].city,
+	OtherPostalCode: payload.deliveryAddresses[0].postalCode,
+	OtherState: payload.deliveryAddresses[0].state,
+	OtherCountry: payload.deliveryAddresses[0].country
 }]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
@@ -103,7 +107,7 @@ output application/java
 output application/json
 ---
 {
-	"id": payload.id,
+	"identifier": payload.id,
 	"customerId": vars.customer.CustomerId__c
 }]]></ee:set-payload>
 					</ee:message>
@@ -155,18 +159,18 @@ output application/java
 	CustomerId__c: vars.updatedContact.customerId,
 	FirstName: vars.updatedContact.firstName,
 	LastName: vars.updatedContact.lastName,
-	MailingStreet: vars.updatedContact.postalAddress.street,
-	MailingCity: vars.updatedContact.postalAddress.city,
-	MailingPostalCode: vars.updatedContact.postalAddress.postalCode,
-	MailingState: vars.updatedContact.postalAddress.state,
-	MailingCountry: vars.updatedContact.postalAddress.country,
+	MailingStreet: vars.updatedContact.deliveryAddresses[1].street,
+	MailingCity: vars.updatedContact.deliveryAddresses[1].city,
+	MailingPostalCode: vars.updatedContact.deliveryAddresses[1].postalCode,
+	MailingState: vars.updatedContact.deliveryAddresses[1].state,
+	MailingCountry: vars.updatedContact.deliveryAddresses[1].country,
 	Phone: vars.updatedContact.phone,
 	(Email: vars.updatedContact.email) if vars.updatedContact.email?,
-	OtherStreet: vars.updatedContact.deliveryAddress.street,
-	OtherCity: vars.updatedContact.deliveryAddress.city,
-	OtherPostalCode: vars.updatedContact.deliveryAddress.postalCode,
-	OtherState: vars.updatedContact.deliveryAddress.state,
-	OtherCountry: vars.updatedContact.deliveryAddress.country
+	OtherStreet: vars.updatedContact.deliveryAddresses[0].street,
+	OtherCity: vars.updatedContact.deliveryAddresses[0].city,
+	OtherPostalCode: vars.updatedContact.deliveryAddresses[0].postalCode,
+	OtherState: vars.updatedContact.deliveryAddresses[0].state,
+	OtherCountry: vars.updatedContact.deliveryAddresses[0].country
 }
 ]]></ee:set-payload>
                             </ee:message>
