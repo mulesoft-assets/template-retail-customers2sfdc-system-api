@@ -27,7 +27,7 @@ types:
       201:
         body: 
           application/json: 
-            example: !include ./examples/post_contact_response_example.json
+            example: !include ./examples/post_contact_response_example.json    
               
   /{customerId}:          
     get:
@@ -46,3 +46,13 @@ types:
           example: !include ./examples/put_contact_example.json 
       responses:
         200:
+          body: 
+              application/json: 
+                example: !include ./examples/put_contact_response_example.json
+    delete:
+      description: Delete customer contact by customerId  
+      responses:
+        200:
+          body: 
+            application/json: 
+              example: !include ./examples/delete_contact_response_example.json

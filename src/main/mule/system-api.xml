@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" 
-xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" 
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+    xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+    xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
 http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd">
@@ -126,12 +125,15 @@ output application/json
         </error-handler>
     </flow>
     <flow name="put:\customers\(customerId):application\json:retail-customers2sfdc-system-api-config">
-		<flow-ref doc:name="putContactFlow" doc:id="829b6e75-435c-45d9-ae14-985afeda9636" name="putContactFlow"/>
+        <flow-ref doc:name="putContactFlow" doc:id="829b6e75-435c-45d9-ae14-985afeda9636" name="putContactFlow" />
+    </flow>
+    <flow name="delete:\customers\(customerId):retail-customers2sfdc-system-api-config">
+        <flow-ref doc:name="deleteContactFlow" doc:id="e737db7f-799b-4a9b-92cd-600517831ba1" name="deleteContactFlow" />
     </flow>
     <flow name="get:\customers\(customerId):retail-customers2sfdc-system-api-config">
-		<flow-ref doc:name="Flow Reference" doc:id="fee3e297-a50c-4390-8640-57b9574874b2" name="getContactFlow"/>
+        <flow-ref doc:name="getContactFlow" doc:id="fee3e297-a50c-4390-8640-57b9574874b2" name="getContactFlow" />
     </flow>
     <flow name="post:\customers:application\json:retail-customers2sfdc-system-api-config">
-		<flow-ref doc:name="postContactFlow" doc:id="e737db7f-799b-4a9b-92cd-600517831bac" name="postContactFlow"/>
+        <flow-ref doc:name="postContactFlow" doc:id="e737db7f-799b-4a9b-92cd-600517831bac" name="postContactFlow" />
     </flow>
 </mule>

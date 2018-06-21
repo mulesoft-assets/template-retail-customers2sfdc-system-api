@@ -54,10 +54,20 @@ output application/json
                 </ee:transform>
             </when>
             <otherwise>
-                <set-variable value="404" doc:name="Resource Not Found" doc:id="04d2f7ab-6dcd-4e70-8fda-f7cbc44e7fd8"
-                    variableName="httpStatus" />
-                <set-payload value='{ "message": "Resource not found" }' doc:name="Set Payload" doc:id="18483e87-fb01-4545-89c2-d09d1d366a0f"
-                    mimeType="application/json" />
+				<ee:transform doc:name="Resource Not Found" doc:id="5dc7c943-5663-45d1-8376-d94741e68dcb" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{ "message": "Resource not found" }]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+404]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
             </otherwise>
         </choice>
     </flow>
@@ -129,10 +139,20 @@ output application/json
 				</ee:transform>
             </when>
             <otherwise>
-                <set-variable value="422" doc:name="Contact with this id already exists" doc:id="04d2f7ab-6dcd-4e70-8fda-f7cbc44e7fd8"
-                    variableName="httpStatus" />
-                <set-payload value='{ "error": "Contact with this id already exists" }' doc:name="Set Payload"
-                    doc:id="18483e87-fb01-4545-89c2-d09d1d366a0f" mimeType="application/json" />
+				<ee:transform doc:name="Contact with this id already exists" doc:id="5dc7c943-5663-45d1-8376-d94741e68dcb" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{ "error": "Contact with this id already exists" }]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+422]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
             </otherwise>
         </choice>
     </flow>
@@ -151,8 +171,7 @@ output application/java
 attributes.uriParams.customerId]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
-        <salesforce:query-single doc:name="Query Single Contact" doc:id="4999f6a0-6a38-429d-83f9-a494e6354f5a"
-            config-ref="Salesforce_Config">
+        <salesforce:query-single doc:name="Query Single Contact" doc:id="4999f6a0-6a38-429d-83f9-a494e6354f5a" config-ref="Salesforce_Config">
             <salesforce:salesforce-query>SELECT Id FROM Contact WHERE CustomerId__c=':customerId'</salesforce:salesforce-query>
             <salesforce:parameters><![CDATA[#[output applicaton/java
 ---
@@ -164,15 +183,15 @@ attributes.uriParams.customerId]]></ee:set-variable>
             <when expression="#[sizeOf(payload) != 0]">
                 <choice doc:name="Does Contact's id in payload and URI param match?" doc:id="9c9bc6ef-4a35-46a5-8019-1cbdf5b15a63">
                     <when expression="#[vars.updatedContact.customerId == vars.customerId]">
-                        <ee:transform doc:name="Set addresses" doc:id="a9631e3f-c23c-4ca3-8de0-45f1e24d2ea3" >
-							<ee:message >
+                        <ee:transform doc:name="Set addresses" doc:id="a9631e3f-c23c-4ca3-8de0-45f1e24d2ea3">
+							<ee:message>
 							</ee:message>
-							<ee:variables >
-								<ee:set-variable variableName="postalAddress" ><![CDATA[%dw 2.0
+							<ee:variables>
+								<ee:set-variable variableName="postalAddress"><![CDATA[%dw 2.0
 output application/java
 ---
 (vars.updatedContact.deliveryAddresses filter ($["type"] == 'BILLING'))[0]]]></ee:set-variable>
-								<ee:set-variable variableName="deliveryAddress" ><![CDATA[%dw 2.0
+								<ee:set-variable variableName="deliveryAddress"><![CDATA[%dw 2.0
 output application/java
 ---
 (vars.updatedContact.deliveryAddresses filter ($["type"] == 'SHIPPING'))[0]]]></ee:set-variable>
@@ -204,25 +223,80 @@ output application/java
 ]]></ee:set-payload>
                             </ee:message>
                         </ee:transform>
-                        <salesforce:update-single type="Contact" doc:name="Update Single Contact" doc:id="d2262dea-da78-4d21-b967-39ae8c8e57c1"
-                            config-ref="Salesforce_Config" />
+                        <salesforce:update-single type="Contact" doc:name="Update Single Contact" doc:id="d2262dea-da78-4d21-b967-39ae8c8e57c1" config-ref="Salesforce_Config" />
                         <logger level="INFO" doc:name="Log Information" doc:id="2285c0fa-2ec2-448f-9e79-8c01982c9814" message="Contact #[payload.id] is updated" />
 						<set-payload value='{ "status": "OK" }' doc:name="Set Payload" doc:id="18483e87-fb01-4545-89c2-d09d1d366a0f" mimeType="application/json" />
                     </when>
                     <otherwise>
-                        <set-variable value="400" doc:name="Bad Request " doc:id="04d2f7ab-6dcd-4e70-8fda-f7cbc44e7fd8"
-                            variableName="httpStatus" />
-                        <set-payload value='{ "message": "Bad Request: Customer Id is not equal to uri parameter" }' doc:name="Set Payload"
-                            doc:id="18483e87-fb01-4545-89c2-d09d1d366a0f" mimeType="application/json" />
+						<ee:transform doc:name="Bad Request" doc:id="5dc7c943-5663-45d1-8376-d94741e68dcb" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{ "message": "Bad Request: Customer Id is not equal to uri parameter" }]]></ee:set-payload>
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+400]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
                     </otherwise>
                 </choice>
             </when>
             <otherwise>
-                <set-variable value="404" doc:name="Resource Not Found" doc:id="04d2f7ab-6dcd-4e70-8fda-f7cbc44e7fd8"
-                    variableName="httpStatus" />
-                <set-payload value='{ "message": "Resource not found" }' doc:name="Set Payload" doc:id="18483e87-fb01-4545-89c2-d09d1d366a0f"
-                    mimeType="application/json" />
+				<ee:transform doc:name="Resource Not Found" doc:id="5dc7c943-5663-45d1-8376-d94741e68dcb" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{ "message": "Resource not found" }]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+404]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
             </otherwise>
         </choice>
     </flow>
+	<flow name="deleteContactFlow" doc:id="fc2b52d7-5e79-41fb-afff-206941efe83c" >
+		<salesforce:query-single doc:name="Get Contact" doc:id="a1cd3c93-d445-448d-94ac-59360714e8ba" config-ref="Salesforce_Config" >
+			<salesforce:salesforce-query >SELECT Id FROM Contact
+                WHERE CustomerId__c = ':customerId'</salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[output applicaton/java
+---
+{
+	"customerId" : attributes.uriParams.customerId
+}]]]></salesforce:parameters>
+		</salesforce:query-single>
+		<choice doc:name="Does Contact Exist?" doc:id="3e4e6c53-e990-40c3-99fc-f7a2ff08b74a" >
+			<when expression="#[sizeOf(payload) != 0]">
+				<salesforce:delete doc:name="Delete Contact" doc:id="fe045140-27ae-46b4-8b84-cc5451ecb4ab" config-ref="Salesforce_Config">
+					<salesforce:delete-ids ><![CDATA[#[[payload.Id]]]]></salesforce:delete-ids>
+				</salesforce:delete>
+				<logger level="INFO" doc:name="Log Information" doc:id="2285c0fa-2ec2-448f-9e79-8c01982c9814" message="Contact #[payload.id] is deleted" />
+				<set-payload value='{ "status": "OK" }' doc:name="Set Payload" doc:id="18483e87-fb01-4545-89c2-d09d1d366a0f" mimeType="application/json" />
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Resource Not Found" doc:id="5dc7c943-5663-45d1-8376-d94741e68dcb" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{ "message": "Resource not found" }]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+404]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
 </mule>

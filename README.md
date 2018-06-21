@@ -27,7 +27,10 @@ This endpoint will trigger flow postContactFlow which creates the customer conta
 This endpoint will trigger flow getContactFlow which obtains a customer contact to the Salesforce by customerId.
 
 ### PUT/customers/{customerId}
-This endpoint will trigger flow putContactFlow which updates the customer contact to the Salesforce by customerId.         
+This endpoint will trigger flow putContactFlow which updates the customer contact to the Salesforce by customerId.        
+
+### DELETE/customers/{customerId}
+This endpoint will trigger flow deleteContactFlow which deletes the customer contact to the Salesforce by customerId.     
 
 Look at the included self-descriptive RAML definition and the corresponding flows to learn more about the flows.
 
@@ -82,12 +85,8 @@ Anypoint Studio provides you with really easy way to deploy your Template direct
 In order to use this Mule Anypoint Template you need to configure properties (Credentials, configurations, etc.) either in properties file or in CloudHub as Environment Variables.
 
 Detailed list with examples:
-### HTTPS configuration
-+ https.port `8081`
-+ keystore.location `keystore.jks`
-+ keystore.password `pass123!`
-+ key.password `pass123!`
-+ key.alias `1`
+### HTTP configuration
++ http.port `8081`
 
 ### Salesforce Connector configuration
 + sfdc.username `example@example.com`
