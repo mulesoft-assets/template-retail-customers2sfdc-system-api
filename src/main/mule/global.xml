@@ -16,6 +16,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
     <tls:context name="TLS_Context" doc:name="TLS Context" doc:id="8ac59cc6-3917-498a-b6c8-e020308d3c04">
         <tls:key-store type="jks" path="${keystore.location}" alias="${key.alias}" keyPassword="${key.password}" password="${keystore.password}" />
     </tls:context>
+    
     <http:listener-config name="retail-customers2sfdc-system-api-httpListenerConfig" doc:name="HTTP Listener config">
         <http:listener-connection host="0.0.0.0" port="${https.port}" tlsContext="TLS_Context" protocol="HTTPS" />
     </http:listener-config>

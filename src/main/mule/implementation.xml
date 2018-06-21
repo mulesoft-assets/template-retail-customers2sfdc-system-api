@@ -8,7 +8,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
     <flow name="getContactFlow" doc:id="fc2b52d7-5e79-41fb-afff-206941efe83c">
         <salesforce:query-single doc:name="Get Contact" doc:id="a1cd3c93-d445-448d-94ac-59360714e8ba" config-ref="Salesforce_Config">
-            <salesforce:salesforce-query>SELECT CustomerId__c, FirstName, LastName, MailingStreet, MailingCity, MailingPostalCode,
+            <salesforce:salesforce-query>SELECT Id, CustomerId__c, FirstName, LastName, MailingStreet, MailingCity, MailingPostalCode,
                 MailingState, MailingCountry, Phone, Email, OtherStreet, OtherCity, OtherPostalCode, OtherState, OtherCountry FROM Contact
                 WHERE CustomerId__c = ':customerId'</salesforce:salesforce-query>
             <salesforce:parameters><![CDATA[#[output applicaton/java
@@ -25,6 +25,7 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 output application/json
 ---
 {
+	identifier: payload.Id,
     customerId: payload.CustomerId__c,
     firstName: payload.FirstName,
     lastName: payload.LastName,
@@ -121,7 +122,7 @@ output application/java
 output application/json
 ---
 {
-	"id": payload.id,
+	"identifier": payload.id,
 	"customerId": vars.customer.CustomerId__c
 }]]></ee:set-payload>
 					</ee:message>
