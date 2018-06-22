@@ -4,7 +4,7 @@ version: v2.0
 # baseUri: https://localhost:8082/api
 
 uses:
-  customer: /exchange_modules/47f07e0a-f578-47d4-9591-d9e7afffb0fc.retail/retail_customer_types/1.0.2/retail_customer_types.raml
+  customer: /exchange_modules/47f07e0a-f578-47d4-9591-d9e7afffb0fc.retail/retail_customer_types/1.0.4/retail_customer_types.raml
 
 types:
   Contact:
@@ -27,7 +27,7 @@ types:
       201:
         body: 
           application/json: 
-            example: !include ./examples/post_contact_response_example.json
+            example: !include ./examples/post_contact_response_example.json    
               
   /{customerId}:          
     get:
@@ -46,3 +46,13 @@ types:
           example: !include ./examples/put_contact_example.json 
       responses:
         200:
+          body: 
+              application/json: 
+                example: !include ./examples/put_contact_response_example.json
+    delete:
+      description: Delete customer contact by customerId  
+      responses:
+        200:
+          body: 
+            application/json: 
+              example: !include ./examples/delete_contact_response_example.json
