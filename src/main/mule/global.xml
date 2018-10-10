@@ -21,6 +21,10 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
         outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
 
     <salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="4a32499f-1d39-4cf1-9ea5-7b1c4721fad6">
-        <salesforce:basic-connection username="${sfdc.username}" password="${sfdc.password}" securityToken="${sfdc.securityToken}" />
+        <salesforce:basic-connection username="${sfdc.username}" password="${sfdc.password}" securityToken="${sfdc.securityToken}" >
+			<reconnection >
+				<reconnect />
+			</reconnection>
+		</salesforce:basic-connection>
     </salesforce:sfdc-config>
 </mule>
