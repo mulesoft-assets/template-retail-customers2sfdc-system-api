@@ -9,7 +9,6 @@ http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/m
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
     http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
 
-    <configuration-properties file="mule-artifact.properties" doc:name="Configuration properties" doc:id="ca514625-7559-4c4d-a352-9acbc3a331dc" />
     <configuration-properties file="common.properties" doc:name="Configuration properties" doc:id="77c4ebce-f817-4dff-99ad-6d2e76512d04" />
     <configuration-properties file="mule.${mule.env}.properties" doc:name="Configuration properties" doc:id="34a99db6-7c63-46ba-89f5-fa5d1fed399e" />
 
@@ -27,4 +26,5 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 			</reconnection>
 		</salesforce:basic-connection>
     </salesforce:sfdc-config>
+	<global-property doc:name="Global Property" doc:id="402b605b-b7a9-456b-af45-787c3f4e51b6" name="mule.env" value="dev" />
 </mule>
