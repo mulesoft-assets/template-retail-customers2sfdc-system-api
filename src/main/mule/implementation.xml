@@ -88,9 +88,7 @@ output application/java
 		</ee:transform>
 		<ee:transform doc:name="Map input to Salesforce Contact" doc:id="03dad6e5-d556-4119-b0e1-623017ddd9e2">
             <ee:message>
-            </ee:message>
-            <ee:variables>
-                <ee:set-variable variableName="customer"><![CDATA[%dw 2.0
+				<ee:set-payload ><![CDATA[%dw 2.0
 output application/java
 ---
 {
@@ -109,21 +107,26 @@ output application/java
 	(OtherPostalCode: vars.deliveryAddress.postalCode) if vars.deliveryAddress?,
 	(OtherState: vars.deliveryAddress.state) if vars.deliveryAddress?,
 	(OtherCountry: vars.deliveryAddress.country) if vars.deliveryAddress?
-}]]></ee:set-variable>
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+				<ee:set-variable variableName="customerId" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.customerId]]></ee:set-variable>
             </ee:variables>
         </ee:transform>
-        <salesforce:query-single doc:name="Check Contact" doc:id="e4fea40a-71ee-4cc6-9f10-93349bc1728b" config-ref="Salesforce_Config">
+        <salesforce:query-single doc:name="Check Contact" doc:id="e4fea40a-71ee-4cc6-9f10-93349bc1728b" config-ref="Salesforce_Config" target="customer">
             <salesforce:salesforce-query>SELECT Id FROM Contact WHERE CustomerId__c=':customerId'</salesforce:salesforce-query>
-            <salesforce:parameters><![CDATA[#[output applicaton/java
+            <salesforce:parameters><![CDATA[#[output application/java
 ---
 {
-	"customerId" : vars.customer.CustomerId__c
+	"customerId" : payload.CustomerId__c
 }]]]></salesforce:parameters>
         </salesforce:query-single>
         <choice doc:name="Does Contact exist?" doc:id="e317d7fb-1f14-491c-8267-f06b7f5c2f09">
-            <when expression="#[sizeOf(payload) == 0]">
+            <when expression="#[sizeOf(vars.customer) == 0]">
 				<salesforce:create-single doc:name="Create new Contact" doc:id="655949ce-17e1-4438-b37d-3182d69c5d89" config-ref="Salesforce_Config" type="Contact">
-					<salesforce:record ><![CDATA[#[vars.customer]]]></salesforce:record>
 				</salesforce:create-single>
 				<logger level="INFO" doc:name="Log Information" doc:id="3a38f08c-7c93-4b05-9027-792b1ed320e7" message="New Contact is created with id: #[payload.id]" />
 				<ee:transform doc:name="Set payload" doc:id="e82a7ca9-50c6-455a-893c-1366279efec2" >
@@ -133,7 +136,7 @@ output application/json
 ---
 {
 	"identifier": payload.id,
-	"customerId": vars.customer.CustomerId__c
+	"customerId": vars.customerId
 }]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
